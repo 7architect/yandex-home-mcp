@@ -22,9 +22,6 @@ const escapeHtml = (value: string) => value.replace(/[&<>"']/g, c => ({ '&': '&a
 type Grant = { clientId: string; params: AuthorizationParams; expires: number };
 type Pending = Grant & { browser: string; attempts: number };
 
-/** Fixed registered clients, explicit owner approval, PKCE and resource-bound short-lived tokens.
- * Pending consents and codes intentionally expire on restart; signed access tokens survive it.
- */
 export function createMcpAuth(config: McpOAuthConfig) {
   const issuer = new URL(config.baseUrl);
   if (issuer.pathname !== '/' || issuer.search || issuer.hash || issuer.username || issuer.password ||
@@ -59,7 +56,6 @@ export function createMcpAuth(config: McpOAuthConfig) {
     clientsStore: { getClient: id => clients.get(id) },
     async authorize(client, params, res) {
       cleanup();
-      // The SDK permits variable loopback ports; this deployment deliberately uses exact registered URIs.
       if (!client.redirect_uris.includes(params.redirectUri)) { res.status(400).json({ error: 'invalid_request' }); return; }
       if (!params.resource || params.resource.href !== resource.href) throw new InvalidRequestError('resource must identify this MCP server');
       if (!/^[A-Za-z0-9_-]{43}$/.test(params.codeChallenge)) throw new InvalidRequestError('Invalid S256 challenge');
@@ -119,7 +115,6 @@ export function createMcpAuth(config: McpOAuthConfig) {
     res.redirect(302, redirect.href);
   });
   router.use('/authorize', express.urlencoded({ extended: false, limit: '8kb' }), (req, res, next) => {
-    // Apply exact redirect checks before SDK parsing, including its error redirects.
     const input = req.method === 'POST' ? req.body : req.query;
     const client = typeof input?.client_id === 'string' ? clients.get(input.client_id) : undefined;
     if (typeof input?.redirect_uri === 'string' && client && !client.redirect_uris.includes(input.redirect_uri)) {

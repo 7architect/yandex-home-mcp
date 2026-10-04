@@ -48,7 +48,6 @@ export function createHttpApp(config: RuntimeConfig, getAccessToken: () => Promi
   }
   app.all('/mcp', authenticate, express.json({ limit: '256kb' }), async (req, res) => {
     if (req.method !== 'POST') { res.setHeader('Allow', 'POST'); res.status(405).end(); return; }
-    // Stateless requests do not retain sessions or leak state across connections.
     const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined, enableJsonResponse: true });
     const server = createMcpServer(new YandexClient({ getAccessToken, readOnly: config.readOnly }), { readOnly: config.readOnly, requireScopes: true });
     res.on('close', () => { void server.close().catch(() => undefined); });

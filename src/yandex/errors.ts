@@ -1,6 +1,5 @@
 export type YandexErrorCode = 'INVALID_ARGUMENT' | 'READ_ONLY' | 'AUTH_REQUIRED' | 'FORBIDDEN' | 'NOT_FOUND' | 'RATE_LIMITED' | 'UPSTREAM_ERROR' | 'INVALID_RESPONSE' | 'OUTCOME_UNKNOWN' | 'NETWORK_ERROR';
 
-/** Never includes upstream text, request bodies, headers, URLs or credentials. */
 export class YandexApiError extends Error {
   readonly code: YandexErrorCode;
   readonly httpStatus?: number;

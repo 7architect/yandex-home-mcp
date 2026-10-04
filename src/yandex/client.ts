@@ -70,7 +70,6 @@ export class YandexClient {
         } else {
           const result = schema.safeParse(data);
           if (!result.success) throw new YandexApiError(method === 'POST' ? 'OUTCOME_UNKNOWN' : 'INVALID_RESPONSE', { requestId });
-          // Upstream human-readable text is untrusted and could echo credentials.
           return this.sanitize(result.data, token) as T;
         }
       } catch (error) {

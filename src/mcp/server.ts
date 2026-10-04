@@ -14,7 +14,6 @@ const id = z.string().min(1).max(256);
 const capability = capabilityActionSchema;
 const capabilities = z.array(capability).min(1).max(100);
 
-/** Tools deliberately omit unsupported create/delete operations. */
 export function createMcpServer(client: HomeClient, options: { readOnly?: boolean; requireScopes?: boolean } = {}) {
   const server = new McpServer({ name: 'yandex-home-mcp', version: '0.1.0' });
   function register<T extends z.ZodRawShape>(name: string, description: string, schema: T, write: boolean, operation: (args: z.infer<z.ZodObject<T>>) => Promise<unknown>) {
@@ -31,7 +30,6 @@ export function createMcpServer(client: HomeClient, options: { readOnly?: boolea
         const result = await operation(args as z.infer<z.ZodObject<T>>);
         return { content: [{ type: 'text', text: JSON.stringify(result) }], structuredContent: { result } };
       } catch (error) {
-        // Never return upstream error bodies, URLs, stack traces, or OAuth tokens.
         const code = error && typeof error === 'object' && 'code' in error ? String(error.code) : '';
         const known = ['AUTH_REQUIRED', 'FORBIDDEN', 'NOT_FOUND', 'RATE_LIMITED', 'TIMEOUT', 'OUTCOME_UNKNOWN', 'INVALID_ARGUMENT', 'INVALID_RESPONSE', 'NETWORK_ERROR', 'READ_ONLY'];
         const safeCode = known.includes(code) ? code : 'UPSTREAM_ERROR';
